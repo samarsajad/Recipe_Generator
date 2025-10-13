@@ -1,0 +1,11 @@
+
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+
+
+.env
+firebase_key.json
+gcp-credentials.json
