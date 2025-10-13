@@ -65,12 +65,12 @@ export function LoginDialog({ setOpen }: LoginDialogProps) {
     setError('');
     try {
       if (isSignUp) {
-        // --- THIS IS THE CRITICAL FIX ---
-        // 1. Create user in Auth
+        
+       
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 2. Create user document in Firestore
+        
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           email: user.email,
@@ -85,18 +85,21 @@ export function LoginDialog({ setOpen }: LoginDialogProps) {
       handleAuthSuccess();
 } catch (error) { 
   let errorMessage = "An unexpected error occurred.";
-
   
-  if (error && typeof error === 'object' && 'code' in error && typeof (error as any).code === 'string') {
-    errorMessage = (error as any).code.replace('auth/', '').replace(/-/g, ' ');
+  if (error && typeof error === 'object' && 'code' in error) {
+   
+    const errorCode = (error as { code: unknown }).code; 
+    if (typeof errorCode === 'string') {
+      errorMessage = errorCode.replace('auth/', '').replace(/-/g, ' ');
+    }
   } 
-  
   else if (error instanceof Error) {
     errorMessage = error.message;
   }
   
   setError(errorMessage);
 }
+
   };
 
   return (
