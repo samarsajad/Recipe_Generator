@@ -33,7 +33,7 @@ export default function MyRecipesPage() {
         const fetchedToken = await user.getIdToken();
         setToken(fetchedToken);
 
-        const res = await axios.get('${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/recipes', {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/recipes`, {
           headers: { Authorization: `Bearer ${fetchedToken}` },
         });
 

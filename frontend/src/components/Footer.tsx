@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -16,23 +17,23 @@ export default function Footer() {
         </div>
 
         {/* Quick Links */}
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-[#B0CE88] mb-4">Quick Links</h3>
-          <ul className="space-y-2">
-            <li>
-              <a href="/" className="hover:text-[#FFFD8F] transition-colors duration-200">Home</a>
-            </li>
-            <li>
-              <a href="/recipes" className="hover:text-[#FFFD8F] transition-colors duration-200">Recipes</a>
-            </li>
-            <li>
-              <a href="/about" className="hover:text-[#FFFD8F] transition-colors duration-200">About</a>
-            </li>
-            <li>
-              <a href="/contact" className="hover:text-[#FFFD8F] transition-colors duration-200">Contact</a>
-            </li>
-          </ul>
-        </div>
+      <div className="flex-1">
+        <h3 className="text-xl font-semibold text-[#B0CE88] mb-4">Quick Links</h3>
+        <ul className="space-y-2">
+          <li>
+            <Link href="/" className="hover:text-[#FFFD8F] transition-colors duration-200">Home</Link>
+          </li>
+          <li>
+             <Link href="/recipes" className="hover:text-[#FFFD8F] transition-colors duration-200">Recipes</Link>
+          </li>
+          <li>
+             <Link href="/about" className="hover:text-[#FFFD8F] transition-colors duration-200">About</Link>
+          </li>
+          <li>
+             <Link href="/contact" className="hover:text-[#FFFD8F] transition-colors duration-200">Contact</Link>
+          </li>
+        </ul>
+      </div>
 
         {/* Social */}
         <div className="flex-1">

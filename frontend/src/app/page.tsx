@@ -419,7 +419,7 @@ if (filters.cuisine.length > 0) {
                 <p className="text-lg md:text-xl mb-4">
                   Add your ingredients to browse and filter delicious recipes.
                 </p>
-                <p className="italic">Discover chef's choice recipes below </p>
+                <p className="italic">Discover chef&apos;s choice recipes below </p>
               </div>
             </div>
 
