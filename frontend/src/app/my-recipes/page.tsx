@@ -33,7 +33,7 @@ export default function MyRecipesPage() {
         const fetchedToken = await user.getIdToken();
         setToken(fetchedToken);
 
-        const res = await axios.get('http://127.0.0.1:8000/users/me/recipes', {
+        const res = await axios.get('${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/recipes', {
           headers: { Authorization: `Bearer ${fetchedToken}` },
         });
 
@@ -54,7 +54,7 @@ export default function MyRecipesPage() {
 
     setDeletingIds(prev => new Set(prev).add(recipeId));
     try {
-      await axios.delete(`http://127.0.0.1:8000/users/me/recipes/${recipeId}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/recipes/${recipeId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRecipes((prev) => prev.filter((r) => r.id !== recipeId));
@@ -69,10 +69,10 @@ export default function MyRecipesPage() {
     }
   };
 
-  const handleRecipeCreated = (newRecipe: any) => {
-    setRecipes((prev) => [newRecipe, ...prev]);
-    setIsCreateModalOpen(false); 
-  };
+  const handleRecipeCreated = (newRecipe: Recipe) => {
+  setRecipes((prev) => [newRecipe, ...prev]);
+  setIsCreateModalOpen(false); 
+};
 
   const handleSearch = (query: string) => {
     router.push(`/?search=${encodeURIComponent(query)}`);

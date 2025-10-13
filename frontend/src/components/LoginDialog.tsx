@@ -48,9 +48,16 @@ export function LoginDialog({ setOpen }: LoginDialogProps) {
       }
 
       handleAuthSuccess();
-    } catch (error: any) {
-      setError(error.message);
-    }
+} catch (error) { 
+  let errorMessage = "An unexpected error occurred."; 
+  
+  
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+  
+  setError(errorMessage);
+}
   };
 
   const handleEmailAuth = async (e: FormEvent) => {
@@ -67,18 +74,29 @@ export function LoginDialog({ setOpen }: LoginDialogProps) {
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           email: user.email,
-          display_name: email.split('@')[0], // Default display name
-          photo_url: '', // Default photo URL
+          display_name: email.split('@')[0], 
+          photo_url: '', 
         });
         console.log("New email user profile created in Firestore!");
-        // --- END OF FIX ---
+        
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
       handleAuthSuccess();
-    } catch (error: any) {
-      setError(error.code.replace('auth/', '').replace(/-/g, ' '));
-    }
+} catch (error) { 
+  let errorMessage = "An unexpected error occurred.";
+
+  
+  if (error && typeof error === 'object' && 'code' in error && typeof (error as any).code === 'string') {
+    errorMessage = (error as any).code.replace('auth/', '').replace(/-/g, ' ');
+  } 
+  
+  else if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+  
+  setError(errorMessage);
+}
   };
 
   return (

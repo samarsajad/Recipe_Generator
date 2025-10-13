@@ -54,7 +54,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
     const fetchRecipe = async () => {
       setLoading(true);
       try {
-        const res = await axios.get<Recipe>(`http://127.0.0.1:8000/recipes/${id}`);
+        const res = await axios.get<Recipe>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes/${id}`);
         const r = res.data;
         setRecipe(r);
         setCurrentRating(r.average_rating || 0);
@@ -77,7 +77,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     if (!id) return;
     axios
-      .get<{ user: string; text: string }[]>(`http://127.0.0.1:8000/recipes/${id}/feedbacks`)
+      .get<{ user: string; text: string }[]>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes/${id}/feedbacks`)
       .then((res) => setFeedbacks(res.data))
       .catch(() => setFeedbacks([]));
   }, [id]);
@@ -89,7 +89,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
     setIsSubmittingRating(true);
     try {
       const response = await axios.post(
-        `http://127.0.0.1:8000/recipes/${recipe.id}/rate`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes/${recipe.id}/rate`,
         { rating },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -111,7 +111,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
     setIsSubmittingFeedback(true);
     try {
       await axios.post(
-        `http://127.0.0.1:8000/recipes/${recipe.id}/feedbacks`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes/${recipe.id}/feedbacks`,
         { text: newFeedback },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -144,7 +144,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
   const ingredients = recipe.ingredients || [];
   const dietaryTags = recipe.dietary_restrictions || [];
   const nutritional = recipe.nutritional_info || {};
-  const instructionsData = recipe.instructions || (recipe as any).steps || [];
+  const instructionsData = recipe.instructions || recipe.steps || [];
   const instructions = Array.isArray(instructionsData) ? instructionsData : [instructionsData];
 
   return (

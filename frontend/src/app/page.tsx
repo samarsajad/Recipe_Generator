@@ -100,7 +100,7 @@ export default function Home() {
 
   // Axios Instance with Auth
   const axiosInstance = useMemo(() => {
-    const instance = axios.create({ baseURL: 'http://127.0.0.1:8000' });
+    const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_BASE_URL });
     instance.interceptors.request.use(async config => {
       if (user) {
         try { 
@@ -198,11 +198,14 @@ export default function Home() {
     setPantryIngredients(prev => prev.includes(formatted) ? prev.filter(i => i !== formatted) : [...prev, formatted]);
   };
 
-  const handleApiError = (err: any, customMessage?: string) => {
-    const detail = (err as AxiosError<{ detail: string }>)?.response?.data?.detail;
-    setError(customMessage || detail || "An unexpected error occurred.");
-    setRecipes([]);
-  };
+  const handleApiError = (err: unknown, customMessage?: string) => {
+  let message = customMessage || "An unexpected error occurred.";
+  if (axios.isAxiosError(err) && err.response?.data?.detail) {
+    message = err.response.data.detail;
+  }
+  setError(message);
+  setRecipes([]);
+};
 
   // Filtered Recipes
   const filteredRecipes = useMemo(() => {

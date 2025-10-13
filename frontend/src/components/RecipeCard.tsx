@@ -33,7 +33,7 @@ export function RecipeCard({
   matching_ingredients,
   missing_ingredients,
   showRatingInput = true,
-  showBookmark = true, // Default to true
+  showBookmark = true, 
   onBookmarkChange,
   
 }: RecipeCardProps) {
@@ -41,13 +41,11 @@ export function RecipeCard({
   const dietaryList = recipe.dietary_restrictions || [];
   const router = useRouter();
   
-  // Handle instructions properly
-  const instructionsData = recipe.instructions || (recipe as any).steps || [];
-  const finalInstructions = Array.isArray(instructionsData) 
-    ? instructionsData 
-    : instructionsData 
-      ? [instructionsData] 
-      : [];
+  const sourceData = recipe.instructions || recipe.steps || [];
+
+
+  const instructionsList = Array.isArray(sourceData) ? sourceData : [sourceData];
+  
       
   const nutritionalInfo = recipe.nutritional_info || {};
   
@@ -72,7 +70,7 @@ export function RecipeCard({
       
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/users/me/bookmarks/check/${recipe.id}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks/check/${recipe.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIsBookmarked(response.data.is_bookmarked);
@@ -92,7 +90,7 @@ export function RecipeCard({
       if (isBookmarked) {
         // Remove bookmark
         await axios.delete(
-          `http://127.0.0.1:8000/users/me/bookmarks/${recipe.id}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks/${recipe.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIsBookmarked(false);
@@ -100,7 +98,7 @@ export function RecipeCard({
       } else {
         // Add bookmark
         await axios.post(
-          `http://127.0.0.1:8000/users/me/bookmarks/${recipe.id}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks/${recipe.id}`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -135,7 +133,7 @@ export function RecipeCard({
     setIsSubmittingRating(true);
     try {
       const response = await axios.post(
-        `http://127.0.0.1:8000/recipes/${recipe.id}/rate`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes/${recipe.id}/rate`,
         { rating },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -290,8 +288,8 @@ export function RecipeCard({
               First Step
             </h4>
             <p className="text-xs text-muted-foreground line-clamp-3">
-              {finalInstructions.length > 0 
-                ? finalInstructions[0] 
+              {instructionsList.length > 0 
+                ? instructionsList[0] 
                 : "No cooking instructions available"
               }
             </p>
@@ -321,7 +319,7 @@ export function RecipeCard({
           >
             <span className="flex items-center gap-1">
               <ChefHat className="h-3 w-3" />
-              Steps ({finalInstructions.length})
+              Steps ({instructionsList.length})
               
             </span>
             {isStepsOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -339,7 +337,7 @@ export function RecipeCard({
                   Cooking Steps:
                 </h3>
                 <div className="space-y-2">
-                  {finalInstructions.map((instruction: string, idx: number) => (
+                  {instructionsList.map((instruction: string, idx: number) => (
                     <div key={idx} className="flex gap-2 p-2 rounded bg-muted/20 border text-sm">
                       <span className="flex-shrink-0 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
                         {idx + 1}

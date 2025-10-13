@@ -5,7 +5,8 @@ export interface Recipe {
   name: string; 
   image_url?: string; 
   ingredients: string[];
-  instructions: string[];
+  instructions?: string | string[]; 
+  steps?: string | string[];
   description?: string[];
   nutritional_info: Record<string, string>;
   cooking_time_minutes?: number;
@@ -14,6 +15,7 @@ export interface Recipe {
   average_rating: number;
   rating_count: number;
   cuisine?: string;
+  
 }
 
 export interface FilterState {

@@ -5,10 +5,11 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import { Recipe } from '@/types';
 
 interface CreateRecipeProps {
   token: string;
-  onRecipeCreated: (newRecipe: any) => void;
+  onRecipeCreated: (newRecipe: Recipe) => void;
 }
 
 export function CreateRecipe({ token, onRecipeCreated }: CreateRecipeProps) {
@@ -23,23 +24,34 @@ export function CreateRecipe({ token, onRecipeCreated }: CreateRecipeProps) {
     setLoading(true);
     setError(null);
 
-    try {
-      const res = await axios.post(
-        "http://127.0.0.1:8000/recipes",
-        { name, difficulty, cooking_time_minutes: Number(time) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  
+try {
+  const res = await axios.post(
+    
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/recipes`,
+    { name, difficulty, cooking_time_minutes: Number(time) },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
 
-      onRecipeCreated(res.data);
-      setName("");
-      setDifficulty("");
-      setTime("");
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.detail || "Failed to create recipe");
-    } finally {
-      setLoading(false);
-    }
+  onRecipeCreated(res.data);
+  setName("");
+  setDifficulty("");
+  setTime("");
+
+} catch (err) { 
+  console.error(err);
+  let errorMessage = "Failed to create recipe";
+  
+  
+  if (axios.isAxiosError(err) && err.response?.data?.detail) {
+    errorMessage = err.response.data.detail;
+  }
+  
+  setError(errorMessage);
+
+} finally {
+  setLoading(false);
+}
   };
 
   return (

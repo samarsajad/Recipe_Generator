@@ -115,7 +115,7 @@ export default function UserProfile() {
         
         setBookmarksLoading(true);
         try {
-            const response = await axios.get('http://127.0.0.1:8000/users/me/bookmarks', {
+            const response = await axios.get('${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setBookmarks(response.data);
