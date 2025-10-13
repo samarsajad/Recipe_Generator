@@ -122,7 +122,7 @@ export default function MyRecipesPage() {
             <div className="bg-[#B0CE88] rounded-xl shadow-lg p-10 flex flex-col items-center transform transition hover:scale-105">
               <BookXIcon className="h-16 w-16 text-[#043915] mb-4" />
               <h3 className="text-2xl font-bold text-[#4C763B] mb-2">No recipes yet</h3>
-              <p className="text-[#043915] text-center mb-4">Click "Create Recipe" to add your first recipe!</p>
+              <p className="text-[#043915] text-center mb-4">Click Create Recipe to add your first recipe!</p>
               <Button
                 style={{ backgroundColor: '#4C763B', color: '#FFFD8F' }}
                 className="flex items-center hover:bg-[#043915] transition-colors"
