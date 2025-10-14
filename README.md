@@ -27,7 +27,7 @@ The **Smart Recipe Generator** intelligently recommends recipes based on ingredi
 
 ##  Demo
 
-![Demo GIF](https://media.giphy.com/media/3ohzdIuqJoo8QdKlnW/giphy.gif)
+[https://recipe-generator-six-omega.vercel.app/](https://recipe-generator-six-omega.vercel.app/)
 *Experience ingredient-based recipe suggestions in action!*
 
 ---
