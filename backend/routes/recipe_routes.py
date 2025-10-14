@@ -7,7 +7,6 @@ from ingredients_weights import INGREDIENT_WEIGHTS
 from ingredient_matching import ingredients_match
 from rapidfuzz import fuzz
 from firebase_admin import firestore, credentials, auth
-from ingredient_matching import lemmatize_ingredient, ingredients_match
 from functools import lru_cache
 import json
 import firebase_admin

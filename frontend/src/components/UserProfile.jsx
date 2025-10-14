@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getFirestore, doc, getDoc, collection, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot, collection, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { BookmarkCheck, BookmarkIcon, BookmarkX, Loader2 } from "lucide-react";
@@ -42,55 +42,60 @@ export default function UserProfile() {
     const [bookmarksLoading, setBookmarksLoading] = useState(false); 
     const [error, setError] = useState('');
 
-    // State for the edit form
+   
     const [displayName, setDisplayName] = useState('');
     const [photoUrl, setPhotoUrl] = useState('');
 
-    // Authentication and Data Fetching Logic 
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (authenticatedUser) => {
+        
+        let profileUnsubscribe = () => {};
+
+        const authUnsubscribe = onAuthStateChanged(auth, async (authenticatedUser) => {
+           
+            profileUnsubscribe();
+
             if (authenticatedUser) {
                 setUser(authenticatedUser);
-                
-                // Get the Firebase ID token for API calls
+                setLoading(true);
+
                 try {
                     const idToken = await authenticatedUser.getIdToken();
                     setToken(idToken);
-                } catch (err) {
-                    console.error('Failed to get ID token:', err);
-                }
-                
-                try {
-                    setLoading(true);
-                    setError('');
-
-                    const profileRef = doc(db, 'users', authenticatedUser.uid);
-                    const wishlistCol = collection(db, 'users', authenticatedUser.uid, 'saved_recipes');
-
-                    const [profileSnap, wishlistSnap] = await Promise.all([
-                        getDoc(profileRef),
-                        getDocs(wishlistCol)
-                    ]);
                     
-                    if (!profileSnap.exists()) {
-                        throw new Error("User profile not found in database.");
-                    }
+                    
+                    const profileRef = doc(db, 'users', authenticatedUser.uid);
+                    profileUnsubscribe = onSnapshot(profileRef, (profileSnap) => {
+                        if (profileSnap.exists()) {
+                            const profileData = profileSnap.data();
+                            setProfile(profileData);
+                            setDisplayName(profileData.display_name || '');
+                            setPhotoUrl(profileData.photo_url || '');
+                        } else {
+                            
+                            console.warn("User profile not found. Waiting for creation...");
+                        }
+                        setLoading(false);
+                    }, (err) => {
+                        console.error("Error listening to profile:", err);
+                        setError(err.message);
+                        setLoading(false);
+                    });
 
-                    const profileData = profileSnap.data();
-                    setProfile(profileData);
-                    setDisplayName(profileData.display_name || '');
-                    setPhotoUrl(profileData.photo_url || '');
-
+                    // Wishlist can remain a one-time fetch
+                    const wishlistCol = collection(db, 'users', authenticatedUser.uid, 'saved_recipes');
+                    const wishlistSnap = await getDocs(wishlistCol);
                     const wishlistData = wishlistSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     setWishlist(wishlistData);
 
                 } catch (err) {
+                    console.error("Error setting up user data:", err);
                     setError(err.message);
-                    console.error("Error fetching user data:", err);
-                } finally {
                     setLoading(false);
                 }
+
             } else {
+                // Clear all user data on logout
                 setUser(null);
                 setProfile(null);
                 setWishlist([]);
@@ -100,7 +105,10 @@ export default function UserProfile() {
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            authUnsubscribe();
+            profileUnsubscribe(); 
+        };
     }, []);
 
     // Fetch bookmarks when view changes to bookmarks
@@ -115,7 +123,8 @@ export default function UserProfile() {
         
         setBookmarksLoading(true);
         try {
-            const response = await axios.get('${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks', {
+            
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setBookmarks(response.data);
@@ -154,7 +163,6 @@ export default function UserProfile() {
     };
 
     const handleBookmarkChange = (recipeId) => {
-        
         setBookmarks(prev => prev.filter(recipe => recipe.id !== recipeId));
     };
     
@@ -162,7 +170,7 @@ export default function UserProfile() {
         signOut(auth).catch(console.error);
     };
 
-    // Render Logic 
+    
     if (loading) {
         return <LoadingSpinner />;
     }
@@ -171,13 +179,12 @@ export default function UserProfile() {
         return (
             <div className="text-center p-8">
                 <h2 className="text-2xl font-bold mb-4">Profile Page</h2>
-                <p className="text-gray-600">Please sign in to view your profile and saved recipes.</p>
-                <button 
-                    onClick={() => router.push('/signin')} 
-                    className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-                >
-                    Sign In
-                </button>
+                <p className="text-gray-600 mb-4">
+                    Please sign in to view your profile and saved recipes.
+                </p>
+                <p className="text-sm text-gray-500">
+                    You can sign in using Google or email from the login popup.
+                </p>
             </div>
         );
     }

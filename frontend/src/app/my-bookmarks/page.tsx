@@ -22,7 +22,7 @@ export default function MyBookmarks() {
   const [userToken, setUserToken] = useState<string | null>(null);
 
   const axiosInstance = useMemo(() => {
-    const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_BASE_URL });
+    const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_BASE_URL} );
     instance.interceptors.request.use(async (config) => {
       if (user) {
         try {
