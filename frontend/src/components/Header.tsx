@@ -77,29 +77,7 @@ export default function Header({ onSearch, onScan, isUploading }: HeaderProps) {
   </DialogContent>
 </Dialog>
 
-      {/* Center: Search & Scan */}
-      <div className="flex flex-grow justify-center gap-4 px-2 sm:px-4">
-        {onSearch && (
-          <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              placeholder="Search recipes by name..."
-              className="pl-10"
-              value={mainSearch}
-              onChange={e => setMainSearch(e.target.value)}
-            />
-          </form>
-        )}
-        {onScan && (
-          <>
-            <Button variant="outline" className="w-full max-w-md" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-              {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-              {isUploading ? 'Scanning...' : 'Scan Ingredients'}
-            </Button>
-            <Input type="file" ref={fileInputRef} onChange={() => onScan?.()} className="hidden" accept="image/jpeg, image/png" />
-          </>
-        )}
-      </div>
+      
     </header>
   );
 }

@@ -11,8 +11,6 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { FaCarrot, FaUtensils } from "react-icons/fa";
 
-
-
 interface RecipeCardProps {
   recipe: Recipe;
   token: string | null;
@@ -35,39 +33,35 @@ export function RecipeCard({
   showRatingInput = true,
   showBookmark = true, 
   onBookmarkChange,
-  
 }: RecipeCardProps) {
   const ingredientsList = recipe.ingredients || [];
   const dietaryList = recipe.dietary_restrictions || [];
   const router = useRouter();
-  
+
   const sourceData = recipe.instructions || recipe.steps || [];
-
-
   const instructionsList = Array.isArray(sourceData) ? sourceData : [sourceData];
-  
-      
   const nutritionalInfo = recipe.nutritional_info || {};
-  
+
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [currentRating, setCurrentRating] = useState(recipe.average_rating || 0);
   const [ratingCount, setRatingCount] = useState(recipe.rating_count || 0);
-  
+
   // Bookmark state
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
-  
+
   // Collapsible states
   const [isStepsOpen, setIsStepsOpen] = useState(false);
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
-  
+
+  // Loader for navigation
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Check bookmark status on component mount
   useEffect(() => {
     const checkBookmarkStatus = async () => {
       if (!token || !recipe.id) return;
-      
       try {
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks/check/${recipe.id}`,
@@ -78,7 +72,6 @@ export function RecipeCard({
         console.error('Failed to check bookmark status:', error);
       }
     };
-
     checkBookmarkStatus();
   }, [token, recipe.id]);
 
@@ -88,7 +81,6 @@ export function RecipeCard({
     setIsBookmarkLoading(true);
     try {
       if (isBookmarked) {
-        // Remove bookmark
         await axios.delete(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks/${recipe.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -96,7 +88,6 @@ export function RecipeCard({
         setIsBookmarked(false);
         alert('Bookmark removed!');
       } else {
-        // Add bookmark
         await axios.post(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/bookmarks/${recipe.id}`,
           {},
@@ -119,17 +110,13 @@ export function RecipeCard({
       alert("Recipe ID is missing. Cannot delete.");
       return;
     }
-
     if (isDeleting) return;
-
     if (!confirm("Are you sure you want to delete this recipe?")) return;
-
     onDelete?.();
   };
 
   const handleRatingSubmit = async (rating: number) => {
     if (!token || isSubmittingRating) return;
-
     setIsSubmittingRating(true);
     try {
       const response = await axios.post(
@@ -137,11 +124,9 @@ export function RecipeCard({
         { rating },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setCurrentRating(response.data.new_average);
       setRatingCount(response.data.rating_count);
       setUserRating(rating);
-      
       alert('Rating submitted successfully!');
     } catch (err) {
       console.error('Failed to submit rating:', err);
@@ -149,6 +134,11 @@ export function RecipeCard({
     } finally {
       setIsSubmittingRating(false);
     }
+  };
+
+  const handleNavigation = () => {
+    setIsNavigating(true);
+    router.push(`/${recipe.id}`);
   };
 
   return (
@@ -168,10 +158,12 @@ export function RecipeCard({
       <CardHeader className="p-4 pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg font-bold line-clamp-2 mb-2 cursor-pointer text-primary text-green-700 hover:text-yellow-600"
-            onClick={() => router.push(`/${recipe.id}`)}
+            <CardTitle 
+              className="text-lg font-bold line-clamp-2 mb-2 cursor-pointer text-primary text-green-700 hover:text-yellow-600 flex items-center gap-2"
+              onClick={handleNavigation}
             >
-            {recipe.name || "Untitled Recipe"}
+              {recipe.name || "Untitled Recipe"}
+              {isNavigating && <Loader2 className="h-5 w-5 animate-spin text-yellow-600" />}
             </CardTitle>
 
             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
@@ -185,7 +177,7 @@ export function RecipeCard({
               </span>
             </div>
           </div>
-          
+
           {/* Action buttons */}
           <div className="flex gap-1">
             {/* Bookmark button */}
@@ -251,20 +243,19 @@ export function RecipeCard({
         </div>
       </CardHeader>
 
-      
       <CardContent className="p-4 pt-0 flex-1 flex flex-col">
         {/* Ingredient matching info  */}
         {matching_ingredients && (
           <div className="rounded bg-green-50 border border-green-200 p-2 mb-3">
-            <p className="text-sm font-medium text-green-700">✅ {matching_ingredients.length}/{ingredientsList.length} ingredients
-            </p>
-            {matching_ingredients && matching_ingredients.length > 0 && (
-              <p className="text-xs text-green-600 mt-1">Available: {matching_ingredients.join(", ")}</p>
-            )}
-            {missing_ingredients && missing_ingredients.length > 0 && (
-              <p className="text-xs text-red-600 mt-1">Missing: {missing_ingredients.join(", ")}</p>
-            )}
-          </div>
+             <p className="text-sm font-medium text-green-700">✅ {matching_ingredients.length}/{ingredientsList.length} ingredients
+             </p>
+             {matching_ingredients && matching_ingredients.length > 0 && (
+               <p className="text-xs text-green-600 mt-1">Available: {matching_ingredients.join(", ")}</p>
+             )}
+             {missing_ingredients && missing_ingredients.length > 0 && (
+               <p className="text-xs text-red-600 mt-1">Missing: {missing_ingredients.join(", ")}</p>
+             )}
+           </div>
         )}
 
         {/* Quick Preview - 2 column layout */}
@@ -320,7 +311,6 @@ export function RecipeCard({
             <span className="flex items-center gap-1">
               <ChefHat className="h-3 w-3" />
               Steps ({instructionsList.length})
-              
             </span>
             {isStepsOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </Button>
@@ -387,7 +377,7 @@ export function RecipeCard({
                 onRatingChange={handleRatingSubmit}
                 size={14}
               />
-              {isSubmittingRating}
+              {isSubmittingRating && <Loader2 className="h-4 w-4 animate-spin" />}
             </div>
           </div>
         )}

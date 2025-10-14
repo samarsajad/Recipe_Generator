@@ -11,26 +11,22 @@ import { StarRating } from '@/components/StarRating';
 import { Loader2, Clock, ChefHat } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { motion } from 'framer-motion';
-import Header from "@/components/Header"; 
+import Header from "@/components/Header";
 import { useRouter } from "next/navigation";
 
 export default function RecipeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-
   const [token, setToken] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [currentRating, setCurrentRating] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
-
   const [feedbacks, setFeedbacks] = useState<{ user: string; text: string }[]>([]);
   const [newFeedback, setNewFeedback] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ uid: string; displayName: string } | null>(null);
-
   const router = useRouter();
 
   // --- Firebase Auth ---
@@ -82,10 +78,8 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
       .catch(() => setFeedbacks([]));
   }, [id]);
 
-  //Rating submit
   const handleRatingSubmit = async (rating: number) => {
     if (!token || isSubmittingRating || !recipe?.id) return;
-
     setIsSubmittingRating(true);
     try {
       const response = await axios.post(
@@ -104,10 +98,8 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  // Feedback submit
   const handleFeedbackSubmit = async () => {
     if (!token || isSubmittingFeedback || !recipe?.id || !newFeedback.trim()) return;
-
     setIsSubmittingFeedback(true);
     try {
       await axios.post(
@@ -115,7 +107,6 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
         { text: newFeedback },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setFeedbacks(prev => [
         ...prev,
         { user: currentUser?.displayName || 'You', text: newFeedback }
@@ -149,134 +140,129 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="flex flex-col min-h-screen">
-          {/* Header */}
-          <Header onSearch={handleSearch} />
-          
-    <div className="max-w-[1400px] mx-auto py-12 px-4 space-y-8">
-      {/* Main Panels */}
-      <div className="flex gap-8">
-        {/* Left Panel */}
-      
-        <motion.div
-          className="w-2/5"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 rounded-lg overflow-hidden flex flex-col">
-            {recipe.image_url && (
-              <motion.img
-                src={recipe.image_url}
-                alt={recipe.name}
-                className="w-full h-72 object-cover"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3 }}
-              />
-            )}
-            <CardContent className="flex flex-col gap-4 py-6 flex-1">
-              <h1 className="text-3xl font-bold text-green-600">{recipe.name}</h1>
-              {recipe.description && (
-                <p className="text-gray-700 text-sm line-clamp-5">{recipe.description}</p>
-              )}
+      {/* Header */}
+      <Header onSearch={handleSearch} />
 
-              <div className="flex justify-between items-start mt-2">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-1">
-                    <StarRating rating={currentRating} readonly size={20} />
-                    <span className="text-sm text-amber-700">
-                      {currentRating > 0 ? `${currentRating.toFixed(1)} (${ratingCount})` : 'No ratings'}
-                    </span>
+      <div className="max-w-[1400px] w-full mx-auto py-6 px-2 sm:px-4 space-y-6">
+        {/* Main Panels */}
+        <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
+          {/* Left Panel */}
+          <motion.div
+            className="w-full md:w-2/5"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 rounded-lg overflow-hidden flex flex-col">
+              {recipe.image_url && (
+                <motion.img
+                  src={recipe.image_url}
+                  alt={recipe.name}
+                  className="w-full h-56 sm:h-72 object-cover"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                />
+              )}
+              <CardContent className="flex flex-col gap-4 py-4 flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-green-600 break-words">{recipe.name}</h1>
+                {recipe.description && (
+                  <p className="text-gray-700 text-xs sm:text-sm line-clamp-5">{recipe.description}</p>
+                )}
+
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-2">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1">
+                      <StarRating rating={currentRating} readonly size={18} />
+                      <span className="text-xs sm:text-sm text-amber-700">
+                        {currentRating > 0 ? `${currentRating.toFixed(1)} (${ratingCount})` : 'No ratings'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {dietaryTags.map((tag, idx) => (
+                        <Badge key={idx} variant="secondary" className="bg-amber-200 text-amber-800 text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    {dietaryTags.map((tag, idx) => (
-                      <Badge key={idx} variant="secondary" className="bg-amber-200 text-amber-800">
-                        {tag}
-                      </Badge>
+                  <div className="flex flex-row gap-3 text-xs sm:text-sm text-amber-900 font-medium">
+                    <div className="flex items-center gap-1"><ChefHat className="h-4 w-4" />{recipe.difficulty || 'Unknown'}</div>
+                    <div className="flex items-center gap-1"><Clock className="h-4 w-4" />{recipe.cooking_time_minutes} min</div>
+                  </div>
+                </div>
+
+                {token ? (
+                  <div className="flex flex-col items-start mt-auto pt-2 w-full">
+                    <span className="text-xs sm:text-sm font-medium mb-1">Your Rating:</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <StarRating rating={userRating} onRatingChange={handleRatingSubmit} size={18} />
+                      {isSubmittingRating && <Loader2 className="h-5 w-5 animate-spin text-amber-500" />}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-amber-700 mt-auto pt-2">Sign in to rate</p>
+                )}
+
+                <div className="w-full mt-3">
+                  <span className="text-xs sm:text-sm font-medium">Leave Feedback:</span>
+                  <Textarea
+                    className="w-full mt-2 border-amber-200 focus:border-green-400 focus:ring-green-200 text-xs sm:text-sm"
+                    value={newFeedback}
+                    onChange={(e) => setNewFeedback(e.target.value)}
+                    placeholder="Write your thoughts..."
+                    rows={2}
+                  />
+                  <Button
+                    onClick={handleFeedbackSubmit}
+                    disabled={isSubmittingFeedback || !newFeedback.trim()}
+                    className="w-full bg-green-600 hover:bg-green-500 text-white transition-colors mt-2 py-1.5 text-xs sm:text-sm"
+                  >
+                    {isSubmittingFeedback && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Submit
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Right Panel */}
+          <motion.div
+            className="w-full md:w-3/5 flex flex-col"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="shadow-lg hover:shadow-2xl transition-shadow duration-300 rounded-lg overflow-hidden flex-1 flex flex-col">
+              <CardContent className="py-4 flex-1 flex flex-col">
+                <section className="pb-6">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-3 flex items-center gap-2 border-b-2 border-green-200 pb-1 text-green-600">
+                    Ingredients
+                  </h2>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {ingredients.map((ing, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-yellow-100 text-amber-900 px-2 py-1 rounded-full text-xs sm:text-sm shadow-sm hover:bg-green-200 transition-colors"
+                      >
+                        {ing}
+                      </span>
                     ))}
                   </div>
-                </div>
-                <div className="flex flex-col gap-2 text-sm text-amber-900 font-medium">
-                  <div className="flex items-center gap-1"><ChefHat className="h-5 w-5" />{recipe.difficulty || 'Unknown'}</div>
-                  <div className="flex items-center gap-1"><Clock className="h-5 w-5" />{recipe.cooking_time_minutes} min</div>
-                </div>
-              </div>
+                </section>
 
-              {token ? (
-                <div className="flex flex-col items-start mt-auto pt-4">
-                  <span className="text-sm font-medium mb-1">Your Rating:</span>
-                  <div className="flex items-center gap-2 mb-1">
-                    <StarRating rating={userRating} onRatingChange={handleRatingSubmit} size={22} />
-                    {isSubmittingRating && <Loader2 className="h-5 w-5 animate-spin text-amber-500" />}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs text-amber-700 mt-auto pt-4">Sign in to rate</p>
-              )}
+                <section className="pb-6">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-3 flex items-center gap-2 border-b-2 border-green-200 pb-1 text-green-600">Cooking Instructions</h2>
+                  <ol className="list-decimal list-inside space-y-2 pl-4 text-amber-900 text-xs sm:text-sm">
+                    {instructions.map((step, idx) => (
+                      <li key={idx}>{step}</li>
+                    ))}
+                  </ol>
+                </section>
 
-              <div className="w-full mt-4">
-                <span className="text-sm font-medium">Leave Feedback:</span>
-                <Textarea
-                  className="w-full my-2 border-amber-200 focus:border-green-400 focus:ring-green-200"
-                  value={newFeedback}
-                  onChange={(e) => setNewFeedback(e.target.value)}
-                  placeholder="Write your thoughts..."
-                  rows={2}
-                />
-                <Button
-                  onClick={handleFeedbackSubmit}
-                  disabled={isSubmittingFeedback || !newFeedback.trim()}
-                  className="w-full bg-green-600 hover:bg-green-500 text-white transition-colors"
-                >
-                  {isSubmittingFeedback && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                  Submit
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Right Panel */}
-       
-        <motion.div
-          className="w-3/5 flex flex-col"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="shadow-lg hover:shadow-2xl transition-shadow duration-300 rounded-lg overflow-hidden flex-1 flex flex-col">
-            <CardContent className="py-6 flex-1 flex flex-col">
-              <section className="pb-6">
-                <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 border-b-2 border-green-200 pb-1 text-green-600">
-                  Ingredients
-                </h2>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {ingredients.map((ing, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-yellow-100 text-amber-900 px-3 py-1 rounded-full text-sm shadow-sm hover:bg-green-200 transition-colors"
-                    >
-                      {ing}
-                    </span>
-                  ))}
-                </div>
-              </section>
-
-              
-
-              <section className="pb-6">
-                <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 border-b-2 border-green-200 pb-1 text-green-600">Cooking Instructions</h2>
-                <ol className="list-decimal list-inside space-y-2 pl-4 text-amber-900">
-                  {instructions.map((step, idx) => (
-                    <li key={idx}>{step}</li>
-                  ))}
-                </ol>
-              </section>
-
-              {Object.keys(nutritional).length > 0 && (
-                <>
+                {Object.keys(nutritional).length > 0 && (
                   <section>
-                    <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 border-b-2 border-green-200 pb-1 text-green-600">Nutritional Info</h2>
-                    <ul className="text-sm text-amber-900">
+                    <h2 className="text-lg sm:text-xl font-semibold mb-3 flex items-center gap-2 border-b-2 border-green-200 pb-1 text-green-600">Nutritional Info</h2>
+                    <ul className="text-xs sm:text-sm text-amber-900">
                       {Object.entries(nutritional).map(([key, val]) => (
                         <li key={key} className="mb-1">
                           <strong>{key}:</strong> {val}
@@ -284,41 +270,39 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
                       ))}
                     </ul>
                   </section>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Feedback Section */}
+        <motion.div
+          className="w-full p-4 sm:p-6 bg-amber-50 rounded-lg shadow-inner"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-lg sm:text-xl font-semibold text-green-600 mb-4">User Feedback</h2>
+          {feedbacks.length === 0 ? (
+            <p className="text-amber-900 text-xs sm:text-sm">No feedback yet. Be the first to leave your thoughts!</p>
+          ) : (
+            <ul className="space-y-3 max-h-72 overflow-y-auto">
+              {feedbacks.map((fb, idx) => (
+                <motion.li
+                  key={idx}
+                  className="border-l-4 border-green-400 bg-amber-100 p-3 rounded shadow-sm text-xs sm:text-sm"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.1 }}
+                >
+                  <strong className="text-green-700">{fb.user}:</strong> {fb.text}
+                </motion.li>
+              ))}
+            </ul>
+          )}
         </motion.div>
       </div>
-
-      {/* Feedback Section */}
-      <motion.div
-        className="w-full p-6 bg-amber-50 rounded-lg shadow-inner"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <h2 className="text-xl font-semibold text-green-600 mb-4">User Feedback</h2>
-        {feedbacks.length === 0 ? (
-          <p className="text-amber-900">No feedback yet. Be the first to leave your thoughts!</p>
-        ) : (
-          <ul className="space-y-3 max-h-72 overflow-y-auto">
-            {feedbacks.map((fb, idx) => (
-              <motion.li
-                key={idx}
-                className="border-l-4 border-green-400 bg-amber-100 p-3 rounded shadow-sm"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: idx * 0.1 }}
-              >
-                <strong className="text-green-700">{fb.user}:</strong> {fb.text}
-              </motion.li>
-            ))}
-          </ul>
-        )}
-      </motion.div>
     </div>
-    </div>
-    
   );
 }

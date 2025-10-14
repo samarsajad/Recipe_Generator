@@ -84,7 +84,7 @@ export const CreateRecipe = ({ token, onClose, onRecipeCreated }) => {
       formData.append('file', imageFile);
 
       try {
-        const response = await axios.post('${process.env.NEXT_PUBLIC_API_BASE_URL}/upload-image', formData, {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload-image`, formData, {
           headers: { 
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`
@@ -111,7 +111,7 @@ export const CreateRecipe = ({ token, onClose, onRecipeCreated }) => {
     };
 
     try {
-      const response = await axios.post('${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/recipes', recipeData, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/me/recipes`, recipeData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTimeout(() => {
