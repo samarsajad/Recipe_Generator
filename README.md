@@ -127,7 +127,7 @@ cd ../frontend
 npm install
 npm run dev
 ```
-6. **Create `.env` file** in `backend/`:
+6. **Create `.env.local` file** in `frontend/`:
 
 ```env
 NEXT_PUBLIC_FIREBASE_API_KEY="your_firebase_API_Key"
