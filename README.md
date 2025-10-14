@@ -15,13 +15,13 @@ The **Smart Recipe Generator** intelligently recommends recipes based on ingredi
 
 ##  Features
 
- 🔹 **Ingredient-based Recipe Search:** Enter your available ingredients and get curated recipes.
- 🔹 **Weighted Fuzzy Matching:** Ingredients are matched even if names are slightly misspelled or formatted differently.
- 🔹 **Add Your Own Recipe:** Users can contribute their own recipes to the database.
- 🔹 **Scan Ingredients Through Image:** Take a photo of your pantry items, and the app detects ingredients automatically using **Imagga API**.
- 🔹 **Recipe Metadata Filters:** Filter recipes by cooking time, difficulty, dietary preferences, and more.
- 🔹 **User Personalization:** Bookmark and save your favorite recipes.
- 🔹 **Interactive Frontend:** Built with Next.js and Shadcn UI for a smooth, modern experience.
+ * **Ingredient-based Recipe Search:** Enter your available ingredients and get curated recipes.
+ * **Weighted Fuzzy Matching:** Ingredients are matched even if names are slightly misspelled or formatted differently.
+ * **Add Your Own Recipe:** Users can contribute their own recipes to the database.
+ * **Scan Ingredients Through Image:** Take a photo of your pantry items, and the app detects ingredients automatically using **Imagga API**.
+ * **Recipe Metadata Filters:** Filter recipes by cooking time, difficulty, dietary preferences, and more.
+ * **User Personalization:** Bookmark and save your favorite recipes.
+ * **Interactive Frontend:** Built with Next.js and Shadcn UI for a smooth, modern experience.
 
 ---
 
