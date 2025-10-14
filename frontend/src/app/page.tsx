@@ -10,6 +10,7 @@ import UserProfile from "@/components/UserProfile";
 import { RecipeCard } from "@/components/RecipeCard";
 import { CreateRecipe } from "@/components/CreateRecipe";
 import { Recipe } from '@/types';
+
 import { RecipeFilters } from "@/components/Filters";
 
 import { Button } from "@/components/ui/button";
@@ -60,11 +61,6 @@ export default function Home() {
   const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isOptimizing, setIsOptimizing] = useState(false);
-
-  const [pendingFetches, setPendingFetches] = useState(0);
-
-
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,7 +70,6 @@ export default function Home() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,10 +83,10 @@ export default function Home() {
 
   // Filters
   const [filters, setFilters] = useState<FilterState>({
-    dietary: [],
-    maxTime: null,
+    dietary: [] as string[],
+    maxTime: null as number | null,
     difficulty: "",
-    minRating: null,
+    minRating: null as number | null,
     cuisine: [],
   });
 
@@ -118,7 +113,7 @@ export default function Home() {
     return instance;
   }, [user]);
 
-  // Fetch Ingredients
+  // API Calls
   useEffect(() => {
     const fetchIngredients = async () => {
       setIsLoading(true);
@@ -132,7 +127,6 @@ export default function Home() {
     fetchIngredients();
   }, [axiosInstance]);
 
-  // Fetch Featured Recipes
   useEffect(() => {
     const fetchFeatured = async () => {
       setIsLoading(true);
@@ -145,36 +139,31 @@ export default function Home() {
   }, [axiosInstance]);
 
   // Recipe Fetching
-
-  
-const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients) => {
-  if (!ingredients.length) {
+  const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients) => {
+    if (!ingredients.length) {
+      setRecipes([]);
+      setViewTitle("");
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
     setRecipes([]);
-    setViewTitle("");
-    return;
-  }
-
-  setPendingFetches(prev => prev + 1);
-  setError(null);
-
-  try {
-    const payload = {
-      available_ingredients: ingredients.map(i => i.trim().toLowerCase()),
-      filters: Object.values(filters).some(v => v) ? filters : undefined
-    };
-    const res = await axiosInstance.post<RecipeResponse[]>('/generate-recipes', payload);
-
-    setRecipes(res.data);
-    setViewTitle(`Suggested Recipes For You`);
-    setView('pantry');
-  } catch (err) {
-    handleApiError(err);
-  } finally {
-    setPendingFetches(prev => Math.max(prev - 1, 0));
-  }
-};
-
-
+    
+    try {
+      const payload = {
+        available_ingredients: ingredients.map(i => i.trim().toLowerCase()),
+        filters: Object.values(filters).some(v => v) ? filters : undefined
+      };
+      const res = await axiosInstance.post<RecipeResponse[]>('/generate-recipes', payload);
+      setRecipes(res.data);
+      setViewTitle(`Suggested Recipes For You`);
+      setView('pantry');
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchRecipesFromSearch = async (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
@@ -205,17 +194,7 @@ const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients)
 
   const togglePantryIngredient = (ing: string) => {
     const formatted = ing.trim().toLowerCase();
-    const updated = pantryIngredients.includes(formatted)
-      ? pantryIngredients.filter(i => i !== formatted)
-      : [...pantryIngredients, formatted];
-    setPantryIngredients(updated);
-
-    // Immediate reset if all removed
-    if (updated.length === 0) {
-      setRecipes([]);
-      setViewTitle("");
-      setView('pantry');
-    }
+    setPantryIngredients(prev => prev.includes(formatted) ? prev.filter(i => i !== formatted) : [...prev, formatted]);
   };
 
   const handleApiError = (err: unknown, customMessage?: string) => {
@@ -239,13 +218,18 @@ const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients)
       if (filters.maxTime && recipeData.cooking_time_minutes && recipeData.cooking_time_minutes > filters.maxTime) return false;
       if (filters.difficulty && recipeData.difficulty?.toLowerCase() !== filters.difficulty.toLowerCase()) return false;
       if (filters.minRating && recipeData.average_rating && recipeData.average_rating < filters.minRating) return false;
-
       let recipeCuisines: string[] = [];
-      if (Array.isArray(recipeData.cuisine)) recipeCuisines = recipeData.cuisine;
-      else if (typeof recipeData.cuisine === 'string') recipeCuisines = [recipeData.cuisine];
+
+      if (Array.isArray(recipeData.cuisine)) {
+        recipeCuisines = recipeData.cuisine;
+      } else if (typeof recipeData.cuisine === 'string') {
+        recipeCuisines = [recipeData.cuisine]; 
+      } else {
+        recipeCuisines = [];
+      }
 
       if (filters.cuisine.length > 0) {
-        if (!filters.cuisine.some(c => recipeCuisines.includes(c))) return false;
+        if (!filters.cuisine.some(cuisine => recipeCuisines.includes(cuisine))) return false;
       }
 
       return true;
@@ -254,7 +238,7 @@ const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients)
 
   // Debounced pantry fetch
   useEffect(() => {
-    if (view === 'pantry' && pantryIngredients.length) {
+    if (view === 'pantry') {
       const timer = setTimeout(() => fetchRecipesFromPantry(), 500);
       return () => clearTimeout(timer);
     }
@@ -270,9 +254,9 @@ const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients)
   }, [sidebarSearch, allIngredients]);
 
   const handleSignOut = () => { signOut(auth); setIsProfileOpen(false); };
+
   const handleRecipeCreated = (newRecipe: Recipe) => setRecipes(prev => [newRecipe, ...prev]);
 
-  // Sidebar JSX
   const pantrySidebarContent = (
     <div className="flex flex-col h-full bg-background">
       <div className="p-4 border-b">
@@ -324,11 +308,12 @@ const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients)
   if (authLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>;
 
   return (
-    <div className="flex h-screen bg-muted/40 overflow-x-hidden">
+    <div className="flex h-screen bg-muted/40 overflow-x-hidden"> 
       <aside className="hidden md:block md:w-[300px] lg:w-[350px] border-r bg-background">{pantrySidebarContent}</aside>
       <main className="flex-1 flex flex-col max-h-screen">
         {/* Header */}
-        <header className="flex flex-wrap items-center justify-between p-4 border-b bg-background gap-4">
+        <header className="flex flex-wrap items-center justify-between p-4 border-b bg-background gap-4"> 
+
           <Sheet>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="outline" size="icon"><Menu /></Button>
@@ -349,92 +334,128 @@ const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients)
           </Dialog>
 
           <div className="flex flex-grow justify-center gap-2 sm:gap-4 px-2 sm:px-4 min-w-0">
-            <form onSubmit={fetchRecipesFromSearch} className={`relative w-full max-w-md min-w-0 transition-all duration-300 ${isSearchFocused ? 'max-w-full' : ''}`}>
+            <form onSubmit={fetchRecipesFromSearch}
+            className={`relative w-full max-w-md min-w-0 transition-all duration-300
+            ${isSearchFocused ? 'max-w-full' : ''}`}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input placeholder="Search recipes by name" className="pl-10" value={mainSearch} onChange={e => setMainSearch(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} />
+              <Input
+              placeholder="Search recipes by name"
+              className="pl-10"
+              value={mainSearch}
+              onChange={e => setMainSearch(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              />
             </form>
-
             <div className="flex flex-col items-start w-full max-w-md">
-              <Button variant="outline" className={`w-full flex items-center justify-center transition-all duration-300${isSearchFocused ? 'sm:block hidden !w-10 !px-2' : 'sm:block'}`} onClick={() => fileInputRef.current?.click()} disabled={isUploading || isLoading}>
-                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                <span className={`ml-2 sm:inline ${isSearchFocused ? 'hidden' : 'inline'}`}>{isUploading ? 'Scanning...' : 'Upload Image to Scan Ingredients'}</span>
+              <Button
+              variant="outline"
+              className={`w-full flex items-center justify-center transition-all duration-300${isSearchFocused ? 'sm:block hidden !w-10 !px-2' : 'sm:block'}`}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || isLoading}
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                <Upload className="h-4 w-4" />
+                )}
+                <span className={`ml-2 sm:inline ${isSearchFocused ? 'hidden' : 'inline'}`}>
+                  {isUploading ? 'Scanning...' : 'Upload Image to Scan Ingredients'}
+                </span>
               </Button>
-              {(isUploading || isLoading) && <p className="text-xs text-muted-foreground mt-1">Consider removing irrelevant tags for faster responses</p>}
+              {(isUploading || isLoading) && (
+                <p className="text-xs text-muted-foreground mt-1">Consider removing irrelevant tags for faster responses</p>
+              )}
               <Input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/jpeg, image/png" />
             </div>
           </div>
+
         </header>
 
         {/* Main Content */}
-       <section className="flex-1 p-4 overflow-y-auto">
-  {/* Incremental loader */}
-  {pendingFetches > 0 && (
-    <div className="flex flex-col items-center mb-4">
-      <Loader2 className="h-8 w-8 animate-spin text-green-700 mb-2" />
-      <p className="text-center text-green-700 font-medium">
-        Please wait while we optimize your search...
-      </p>
-    </div>
-  )}
+        <section className="flex-1 p-4 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex justify-center items-center">
+              <Loader2 className="h-12 w-12 animate-spin" />
+            </div>
+          ) : error ? (
+            <p className="text-red-500 text-center">{typeof error === 'string' ? error : JSON.stringify(error)}</p>
+          ) : (
+            <>
+              {filteredRecipes.length > 0 ? (
+                <>
+                  <h2 className="text-xl font-semibold mb-4">{viewTitle}</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                    {filteredRecipes.map((r, idx) => {
+                      const recipeData = 'recipe' in r ? r.recipe : r;
+                      const matching = 'matching_ingredients' in r ? r.matching_ingredients : [];
+                      const missing = 'missing_ingredients' in r ? r.missing_ingredients : [];
+                      return (
+                        <RecipeCard
+                          key={recipeData.id || idx}
+                          recipe={recipeData}
+                          matching_ingredients={matching}
+                          missing_ingredients={missing}
+                          token={userToken}
+                        />
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                pantryIngredients.length === 0 &&
+                view === 'pantry' &&
+                featuredRecipes.length > 0 && (
+                  <>
+                    {/* Hero Section */}
+                    <div className="relative bg-gradient-to-r from-green-400 to-green-600 text-white rounded-xl p-8 mb-8 overflow-hidden">
+                      
+                      <svg
+                        className="absolute -bottom-1 left-0 w-full h-32 text-white opacity-20"
+                        viewBox="0 0 1440 320"
+                        fill="currentColor"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M0,160 C360,320 1080,0 1440,160 L1440,320 L0,320 Z"
+                        ></path>
+                      </svg>
 
-  {/* Error */}
-  {error && <p className="text-red-500 text-center">{error}</p>}
+                      <div className="relative z-10">
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                          Welcome to Smart Recipes!
+                        </h1>
+                        <p className="text-lg md:text-xl mb-4">
+                          Add your ingredients to browse and filter delicious recipes.
+                        </p>
+                        <p className="italic">Discover chef&apos;s choice recipes below </p>
+                      </div>
+                    </div>
 
-  {/* Recipes */}
-  {filteredRecipes.length > 0 ? (
-    <>
-      <h2 className="text-xl font-semibold mb-4">{viewTitle}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-        {filteredRecipes.map((r, idx) => {
-          const recipeData = 'recipe' in r ? r.recipe : r;
-          const matching = 'matching_ingredients' in r ? r.matching_ingredients : [];
-          const missing = 'missing_ingredients' in r ? r.missing_ingredients : [];
-          return (
-            <RecipeCard
-              key={recipeData.id || idx}
-              recipe={recipeData}
-              matching_ingredients={matching}
-              missing_ingredients={missing}
-              token={userToken}
-            />
-          );
-        })}
-      </div>
-    </>
-  ) : (
-    pantryIngredients.length === 0 && view === 'pantry' && featuredRecipes.length > 0 ? (
-      <>
-        {/* Featured Recipes */}
-        <div className="relative bg-gradient-to-r from-green-400 to-green-600 text-white rounded-xl p-8 mb-8 overflow-hidden">
-          <svg className="absolute -bottom-1 left-0 w-full h-32 text-white opacity-20" viewBox="0 0 1440 320" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path fillRule="evenodd" clipRule="evenodd" d="M0,160 C360,320 1080,0 1440,160 L1440,320 L0,320 Z"></path>
-          </svg>
-          <div className="relative z-10">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome to Smart Recipes!</h1>
-            <p className="text-lg md:text-xl mb-4">Add your ingredients to browse and filter delicious recipes.</p>
-            <p className="italic">Discover chef&apos;s choice recipes below</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-          {featuredRecipes.map((recipe, idx) => (
-            <RecipeCard
-              key={recipe.id || idx}
-              recipe={recipe}
-              matching_ingredients={[]}
-              missing_ingredients={[]}
-              token={userToken}
-            />
-          ))}
-        </div>
-      </>
-    ) : (
-      <p className="text-muted-foreground text-center">{viewTitle }</p>
-    )
-  )}
-</section>
+                    {/* Recipes Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                      {featuredRecipes.map((recipe, idx) => (
+                        <RecipeCard
+                          key={recipe.id || idx}
+                          recipe={recipe}
+                          matching_ingredients={[]}
+                          missing_ingredients={[]}
+                          token={userToken}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )
+              ) || <p className="text-muted-foreground text-center">{viewTitle || "No recipes yet."}</p>}
+            </>
+          )}
+        </section>
 
-
-        {isCreateModalOpen && userToken && <CreateRecipe token={userToken} onClose={() => setIsCreateModalOpen(false)} onRecipeCreated={handleRecipeCreated} />}
+        {isCreateModalOpen && userToken && (
+          <CreateRecipe token={userToken} onClose={() => setIsCreateModalOpen(false)} onRecipeCreated={handleRecipeCreated} />
+        )}
       </main>
     </div>
   );
