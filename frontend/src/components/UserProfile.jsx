@@ -168,19 +168,19 @@ export default function UserProfile() {
     }
 
     if (!user) {
-        return (
-            <div className="text-center p-8">
-                <h2 className="text-2xl font-bold mb-4">Profile Page</h2>
-                <p className="text-gray-600">Please sign in to view your profile and saved recipes.</p>
-                <button 
-                    onClick={() => router.push('/signin')} 
-                    className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-                >
-                    Sign In
-                </button>
-            </div>
-        );
-    }
+  return (
+    <div className="text-center p-8">
+      <h2 className="text-2xl font-bold mb-4">Profile Page</h2>
+      <p className="text-gray-600 mb-4">
+        Please sign in to view your profile and saved recipes.
+      </p>
+      <p className="text-sm text-gray-500">
+        You can sign in using Google or email from the login popup.
+      </p>
+    </div>
+  );
+}
+
     
     return (
         <div className="p-2">
