@@ -28,11 +28,11 @@ The **Smart Recipe Generator** intelligently recommends recipes based on ingredi
 ##  Demo
 
 [https://recipe-generator-six-omega.vercel.app/](https://recipe-generator-six-omega.vercel.app/)
-*Experience ingredient-based recipe suggestions in action!*
+Experience ingredient-based recipe suggestions in action!
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer            | Technology                              |
 | ---------------- | --------------------------------------- |
@@ -140,13 +140,11 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="your_firebase_measurementID"
 NEXT_PUBLIC_API_BASE_URL = "your_local_host_url"
 ```
 
-6. **Access Locally**
+7. **Access Locally**
    Frontend: [http://localhost:3000](http://localhost:3000)
    Backend: [http://localhost:8000](http://localhost:8000)
 
 ---
 
 
-If you want, I can **also create a version with interactive badges for each feature, collapsible setup steps, and a visual workflow diagram** that looks like a modern project portfolio.
 
-Do you want me to do that next?
