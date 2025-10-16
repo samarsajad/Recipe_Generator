@@ -64,6 +64,8 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [pendingFetches, setPendingFetches] = useState(0);
+  const [isFeaturedLoading, setIsFeaturedLoading] = useState<boolean>(false);
+
 
   const [error, setError] = useState<string | null>(null);
 
@@ -72,6 +74,7 @@ export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,15 +134,18 @@ export default function Home() {
   }, [axiosInstance]);
 
   useEffect(() => {
-    const fetchFeatured = async () => {
-      setIsLoading(true);
-      try {
-        const res = await axiosInstance.get<Recipe[]>('/chefs-choice');
-        setFeaturedRecipes(res.data);
-      } finally { setIsLoading(false); }
-    };
-    fetchFeatured();
-  }, [axiosInstance]);
+  const fetchFeatured = async () => {
+    setIsFeaturedLoading(true);
+    try {
+      const res = await axiosInstance.get<Recipe[]>('/chefs-choice');
+      setFeaturedRecipes(res.data);
+    } finally {
+      setIsFeaturedLoading(false);
+    }
+  };
+  fetchFeatured();
+}, [axiosInstance]);
+
 
   // Recipe Fetching
   const fetchRecipesFromPantry = async (ingredients: string[] = pantryIngredients) => {
@@ -383,55 +389,77 @@ export default function Home() {
 
   {/* Recipes */}
   {filteredRecipes.length > 0 ? (
+  <>
+    <h2 className="text-xl font-semibold mb-4">{viewTitle}</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+      {filteredRecipes.map((r, idx) => {
+        const recipeData = 'recipe' in r ? r.recipe : r;
+        const matching = 'matching_ingredients' in r ? r.matching_ingredients : [];
+        const missing = 'missing_ingredients' in r ? r.missing_ingredients : [];
+
+        return (
+          <RecipeCard
+            key={recipeData.id || idx}
+            recipe={recipeData}
+            matching_ingredients={matching}
+            missing_ingredients={missing}
+            token={userToken}
+          />
+        );
+      })}
+    </div>
+  </>
+) : pantryIngredients.length === 0 && view === 'pantry' ? (
+  isFeaturedLoading ? (
+    
+    <div className="flex flex-col items-center justify-center h-[60vh]">
+      <Loader2 className="h-10 w-10 animate-spin text-green-700 mb-4" />
+      <p className="text-green-700 font-medium">Loading featured recipes...</p>
+    </div>
+  ) : featuredRecipes.length > 0 ? (
     <>
-      <h2 className="text-xl font-semibold mb-4">{viewTitle}</h2>
+      {/* Featured Section */}
+      <div className="relative bg-gradient-to-r from-green-400 to-green-600 text-white rounded-xl p-8 mb-8 overflow-hidden">
+        <svg
+          className="absolute -bottom-1 left-0 w-full h-32 text-white opacity-20"
+          viewBox="0 0 1440 320"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M0,160 C360,320 1080,0 1440,160 L1440,320 L0,320 Z"
+          />
+        </svg>
+        <div className="relative z-10">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome to Smart Recipes!</h1>
+          <p className="text-lg md:text-xl mb-4">
+            Add your ingredients to browse and filter delicious recipes.
+          </p>
+          <p className="italic">Discover chef&apos;s choice recipes below</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-        {filteredRecipes.map((r, idx) => {
-          const recipeData = 'recipe' in r ? r.recipe : r;
-          const matching = 'matching_ingredients' in r ? r.matching_ingredients : [];
-          const missing = 'missing_ingredients' in r ? r.missing_ingredients : [];
-          return (
-            <RecipeCard
-              key={recipeData.id || idx}
-              recipe={recipeData}
-              matching_ingredients={matching}
-              missing_ingredients={missing}
-              token={userToken}
-            />
-          );
-        })}
+        {featuredRecipes.map((recipe, idx) => (
+          <RecipeCard
+            key={recipe.id || idx}
+            recipe={recipe}
+            matching_ingredients={[]}
+            missing_ingredients={[]}
+            token={userToken}
+          />
+        ))}
       </div>
     </>
   ) : (
-    pantryIngredients.length === 0 && view === 'pantry' && featuredRecipes.length > 0 ? (
-      <>
-        {/* Featured Recipes */}
-        <div className="relative bg-gradient-to-r from-green-400 to-green-600 text-white rounded-xl p-8 mb-8 overflow-hidden">
-          <svg className="absolute -bottom-1 left-0 w-full h-32 text-white opacity-20" viewBox="0 0 1440 320" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path fillRule="evenodd" clipRule="evenodd" d="M0,160 C360,320 1080,0 1440,160 L1440,320 L0,320 Z"></path>
-          </svg>
-          <div className="relative z-10">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome to Smart Recipes!</h1>
-            <p className="text-lg md:text-xl mb-4">Add your ingredients to browse and filter delicious recipes.</p>
-            <p className="italic">Discover chef&apos;s choice recipes below</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-          {featuredRecipes.map((recipe, idx) => (
-            <RecipeCard
-              key={recipe.id || idx}
-              recipe={recipe}
-              matching_ingredients={[]}
-              missing_ingredients={[]}
-              token={userToken}
-            />
-          ))}
-        </div>
-      </>
-    ) : (
-      <p className="text-muted-foreground text-center">{viewTitle }</p>
-    )
-  )}
+    <p className="text-muted-foreground text-center">{viewTitle}</p>
+  )
+) : (
+  <p className="text-muted-foreground text-center">{viewTitle}</p>
+)}
+
 </section>
 
 
