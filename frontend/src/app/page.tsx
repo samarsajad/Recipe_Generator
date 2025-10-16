@@ -358,7 +358,7 @@ export default function Home() {
           <div className="flex flex-grow justify-center gap-2 sm:gap-4 px-2 sm:px-4 min-w-0">
             <form onSubmit={fetchRecipesFromSearch} className={`relative w-full max-w-md min-w-0 transition-all duration-300 ${isSearchFocused ? 'max-w-full' : ''}`}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input placeholder="Search recipes by name" className="pl-10" value={mainSearch} onChange={e => setMainSearch(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} />
+              <Input placeholder="Enter name of the recipe" className="pl-10" value={mainSearch} onChange={e => setMainSearch(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} />
             </form>
 
             <div className="flex flex-col items-start w-full max-w-md">
